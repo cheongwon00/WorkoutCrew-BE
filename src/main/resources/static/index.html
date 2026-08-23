@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WorkoutCrew 백엔드 기능 검증 콘솔">
+    <title>WorkoutCrew 검증 콘솔</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+    <div>
+        <p class="eyebrow">WORKOUTCREW · API VERIFIER</p>
+        <h1>백엔드 기능 검증 콘솔</h1>
+    </div>
+    <div class="session-panel">
+        <span id="session-dot" class="status-dot"></span>
+        <span id="session-label">세션 확인 전</span>
+        <button id="refresh-csrf" class="button button-ghost" type="button">CSRF 갱신</button>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div>
+            <p class="section-label">검증 순서</p>
+            <h2>가입하고, 로그인하고,<br>크루 흐름을 끝까지 확인하세요.</h2>
+        </div>
+        <ol class="flow-list">
+            <li><span>01</span> 회원가입과 로그인</li>
+            <li><span>02</span> 크루 생성 또는 가입</li>
+            <li><span>03</span> 소속·관리 기능 검증</li>
+        </ol>
+    </section>
+
+    <div id="notice" class="notice" role="status" aria-live="polite">서버에서 CSRF 토큰을 준비하고 있습니다.</div>
+
+    <div class="workspace">
+        <div class="main-column">
+            <section class="card" id="auth-section">
+                <div class="card-heading">
+                    <div><p class="section-label">01 · ACCOUNT</p><h2>계정과 세션</h2></div>
+                    <button id="logout" class="button button-danger" type="button">현재 기기 로그아웃</button>
+                </div>
+                <div class="form-grid two-columns">
+                    <form id="signup-form" class="form-block">
+                        <h3>회원가입</h3>
+                        <label>이메일<input name="email" type="email" autocomplete="email" placeholder="alice@example.com" required></label>
+                        <label>비밀번호<input name="password" type="password" minlength="8" maxlength="20" autocomplete="new-password" placeholder="8~20자" required></label>
+                        <label>닉네임<input name="nickname" minlength="2" maxlength="10" placeholder="2~10자" required></label>
+                        <button class="button button-primary" type="submit">계정 만들기</button>
+                    </form>
+                    <form id="login-form" class="form-block">
+                        <h3>로그인</h3>
+                        <label>이메일<input name="email" type="email" autocomplete="email" placeholder="alice@example.com" required></label>
+                        <label>비밀번호<input name="password" type="password" autocomplete="current-password" required></label>
+                        <button class="button button-primary" type="submit">로그인</button>
+                        <p class="hint">다중 기기 세션은 시크릿 창 또는 다른 브라우저에서 같은 계정으로 로그인해 확인할 수 있습니다.</p>
+                    </form>
+                </div>
+                <div class="divider"></div>
+                <div class="inline-actions">
+                    <form id="nickname-form" class="inline-form">
+                        <label>닉네임 변경<input name="nickname" minlength="2" maxlength="10" placeholder="새 닉네임" required></label>
+                        <button class="button button-secondary" type="submit">변경</button>
+                    </form>
+                    <button id="withdraw" class="button button-danger" type="button">회원탈퇴</button>
+                </div>
+            </section>
+
+            <section class="card" id="crew-section">
+                <div class="card-heading">
+                    <div><p class="section-label">02 · CREWS</p><h2>크루 생성과 탐색</h2></div>
+                    <button id="reload-crews" class="button button-ghost" type="button">목록 새로고침</button>
+                </div>
+                <form id="crew-create-form" class="form-grid crew-create-grid">
+                    <label>크루 이름<input name="name" minlength="2" maxlength="20" placeholder="아침운동" required></label>
+                    <label>가입 비밀번호<input name="password" type="password" minlength="4" maxlength="8" placeholder="4~8자" required></label>
+                    <label>최대 인원<input name="maxUsers" type="number" min="2" max="100" value="10" required></label>
+                    <label>주간 목표<input name="weeklyCertificationGoal" type="number" min="1" max="7" value="3" required></label>
+                    <button class="button button-primary" type="submit">크루 생성</button>
+                </form>
+                <div class="list-toolbar">
+                    <div class="pagination-controls">
+                        <button id="crew-prev" class="button button-ghost" type="button">이전</button>
+                        <span id="crew-page-label">0 페이지</span>
+                        <button id="crew-next" class="button button-ghost" type="button">다음</button>
+                    </div>
+                    <select id="crew-sort" aria-label="크루 정렬">
+                        <option value="id,desc">최신순</option>
+                        <option value="id,asc">오래된순</option>
+                    </select>
+                </div>
+                <div id="crew-list" class="crew-list empty-state">로그인 후 크루 목록을 불러오세요.</div>
+            </section>
+
+            <section class="card" id="selected-crew-section">
+                <div class="card-heading">
+                    <div><p class="section-label">03 · SELECTED CREW</p><h2 id="selected-crew-title">선택된 크루 없음</h2></div>
+                    <span id="selected-crew-id" class="id-badge">ID —</span>
+                </div>
+
+                <div class="form-grid two-columns">
+                    <form id="join-form" class="form-block">
+                        <h3>크루 가입</h3>
+                        <label>가입 비밀번호<input name="password" type="password" minlength="4" maxlength="8" required></label>
+                        <button class="button button-primary" type="submit">선택 크루 가입</button>
+                    </form>
+                    <div class="form-block">
+                        <h3>내 소속</h3>
+                        <button id="load-members" class="button button-secondary" type="button">크루원 조회</button>
+                        <button id="leave-crew" class="button button-danger" type="button">크루 탈퇴</button>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+                <div class="management-grid">
+                    <form id="crew-update-form" class="form-block">
+                        <h3>크루 정보 수정 · MANAGER</h3>
+                        <label>이름<input name="name" minlength="2" maxlength="20" placeholder="비워두면 유지"></label>
+                        <label>새 가입 비밀번호<input name="password" type="password" minlength="4" maxlength="8" placeholder="비워두면 유지"></label>
+                        <div class="split-inputs">
+                            <label>최대 인원<input name="maxUsers" type="number" min="2" max="100"></label>
+                            <label>주간 목표<input name="weeklyCertificationGoal" type="number" min="1" max="7"></label>
+                        </div>
+                        <button class="button button-secondary" type="submit">제공한 값만 수정</button>
+                    </form>
+                    <form id="manager-form" class="form-block">
+                        <h3>관리자 위임 · MANAGER</h3>
+                        <label>대상 사용자 ID<input name="targetUserId" type="number" min="1" required></label>
+                        <button class="button button-secondary" type="submit">관리자 위임</button>
+                    </form>
+                    <form id="kick-form" class="form-block">
+                        <h3>크루원 추방 · MANAGER</h3>
+                        <label>대상 사용자 ID<input name="userId" type="number" min="1" required></label>
+                        <button class="button button-danger" type="submit">크루원 추방</button>
+                    </form>
+                </div>
+                <button id="delete-crew" class="button button-danger full-width" type="button">선택 크루 삭제 · MANAGER</button>
+
+                <div class="member-heading"><h3>크루원</h3><span id="member-count">0명</span></div>
+                <div id="member-list" class="member-list empty-state">크루원 조회 결과가 여기에 표시됩니다.</div>
+            </section>
+        </div>
+
+        <aside class="card console-card">
+            <div class="card-heading">
+                <div><p class="section-label">LIVE</p><h2>API 응답 로그</h2></div>
+                <button id="clear-log" class="button button-ghost" type="button">지우기</button>
+            </div>
+            <p class="hint">HTTP 상태와 네 필드 공통 응답을 실제 값 그대로 표시합니다.</p>
+            <div id="api-log" class="api-log" aria-live="polite"></div>
+        </aside>
+    </div>
+</main>
+
+<template id="crew-card-template">
+    <article class="crew-item">
+        <div><span class="crew-item-id"></span><h3 class="crew-item-name"></h3></div>
+        <dl><div><dt>인원</dt><dd class="crew-item-users"></dd></div><div><dt>주간 목표</dt><dd class="crew-item-goal"></dd></div></dl>
+        <button class="button button-secondary crew-select" type="button">선택</button>
+    </article>
+</template>
+
+<script src="/app.js" defer></script>
+</body>
+</html>

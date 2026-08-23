@@ -1,6 +1,14 @@
 HELP.md
 .gradle
 build/
+*.log
+.env
+.env.*
+!.env.example
+*.class
+target/
+tmp/
+.DS_Store
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
